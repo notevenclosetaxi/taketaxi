@@ -1,7 +1,7 @@
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParam } from "./HomeScreen";
-import { Button } from "react-native";
+import { Button, StyleSheet, TextInput } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import NaverMapView, {Circle, Marker, Path, Polyline, Polygon} from "react-native-nmap";
 
@@ -23,12 +23,23 @@ export const MapScreen = () => {
     title="Home"
     onPress={() => navigation.navigate('Home')}/>
 
-<NaverMapView style={{width: '100%', height: '80%'}}
+    <TextInput 
+    style={styles.input}
+    placeholder="출발지"/>
+
+    <TextInput
+    style={styles.input}
+    placeholder="목적지"/>
+
+
+
+
+<NaverMapView style={{width: '100%', height: '60%'}}
                          showsMyLocationButton={true}
                          center={{...P0, zoom: 16}}
-                         onTouch={e => console.warn('onTouch', JSON.stringify(e.nativeEvent))}
-                         onCameraChange={e => console.warn('onCameraChange', JSON.stringify(e))}
-                         onMapClick={e => console.warn('onMapClick', JSON.stringify(e))}>
+                        //  onTouch={e => console.log('onTouch', JSON.stringify(e.nativeEvent))}
+                        //  onCameraChange={e => console.log('onCameraChange', JSON.stringify(e))}
+                         onMapClick={e => console.log('onMapClick', JSON.stringify(e))}>
     </NaverMapView>
 
 
@@ -37,3 +48,14 @@ export const MapScreen = () => {
 </SafeAreaView>
     </>)
 }
+
+
+const styles = StyleSheet.create({
+    input: {
+      height: 40,
+      width: '75%',
+      margin: 12,
+      borderWidth: 1,
+      padding: 10,
+    },
+  });
