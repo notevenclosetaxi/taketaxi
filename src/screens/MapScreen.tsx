@@ -52,7 +52,7 @@ export const MapScreen = () => {
 
 const styles = StyleSheet.create({
     input: {
-      height: 40,
+      height: 41,
       width: '75%',
       margin: 12,
       borderWidth: 1,
