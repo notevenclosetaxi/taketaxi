@@ -1,8 +1,4 @@
-// service.ts
-
 import axios from 'axios';
-import { ApiResponse } from '../interface';
-import { RouteQuerySearch } from '../interface/http/request/route.request';
 import { RouteQuerySearchRes } from '../interface/http/response/route.respons';
 
 const QuerySearchURL: string = 'https://openapi.naver.com/v1/search/local.json';
