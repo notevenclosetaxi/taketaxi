@@ -5,8 +5,14 @@ export interface RouteQuery {
 
 export interface RouteQueryRes {
   data?: any;
-  searchData?: object;
-  centerPoint?: object;
-  latitude?: number;
-  longitude?: number;
+  searchData: object;
+  centerPoint: {
+    latitude: number;
+    longitude: number;
+  };
+}
+
+export interface LatLongType {
+  latitude: number;
+  longitude: number;
 }

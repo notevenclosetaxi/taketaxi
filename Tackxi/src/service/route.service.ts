@@ -1,15 +1,17 @@
 import axios from 'axios';
-import { RouteQuerySearchRes } from '../interface/http/response/route.respons';
-
+import { RouteQuerySearchRes } from '../interface/http/response/route.response';
+import { X_Naver_Client_Id } from '@env';
+import { X_Naver_Client_Secret } from '@env';
+import { SelectQueryEnum } from '../enum';
 const QuerySearchURL: string = 'https://openapi.naver.com/v1/search/local.json';
 
 export const getGeoCode = async (
   query: string,
-  selecQueryType: 'start' | 'end'
+  selectQueryType: SelectQueryEnum
 ): Promise<RouteQuerySearchRes> => {
   const headers = {
-    'X-Naver-Client-Id': 'O5tSyx_ROEO1JjJ3zK6Z',
-    'X-Naver-Client-Secret': 'oWD2npmwvX',
+    'X-Naver-Client-Id': `${X_Naver_Client_Id}`,
+    'X-Naver-Client-Secret': `${X_Naver_Client_Secret}`,
   };
 
   try {

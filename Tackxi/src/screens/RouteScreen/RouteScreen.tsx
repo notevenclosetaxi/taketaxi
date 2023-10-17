@@ -2,22 +2,30 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Button, Modal, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import NaverMapView, { Circle, Marker, Path, Polyline, Polygon } from 'react-native-nmap';
+import NaverMapView, {
+  Circle,
+  Marker,
+  Path,
+  Polyline,
+  Polygon,
+  Align,
+} from 'react-native-nmap';
 import axios from 'axios';
 import { useState } from 'react';
 import { RouteStackParamList } from '../../navigator/Stacks/RouteStack/RouteStack';
-import { RouteQuery, RouteQueryRes } from '../../interface';
+import { LatLongType, RouteQuery, RouteQueryRes } from '../../interface';
 import { getGeoCode } from '../../service/route.service';
+import { SelectQueryEnum } from '../../enum';
 
 export const RouteScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RouteStackParamList>>();
 
-  const [centerPoint, setCenterPoint] = useState<RouteQueryRes>({
+  const [centerPoint, setCenterPoint] = useState<LatLongType>({
     latitude: 37.564362,
     longitude: 126.977011,
   });
 
-  const [searchData, setSearchData] = useState<RouteQueryRes>([]);
+  const [searchData, setSearchData] = useState<object>([]);
 
   const [Querydata, setQueryData] = useState<RouteQuery>({
     startQuery: '',
@@ -33,22 +41,22 @@ export const RouteScreen: React.FC = () => {
 
   const handleGetGeoCode = async () => {
     try {
-      if (selecQueryType === 'start') {
-        const response = await getGeoCode(Querydata.startQuery, selecQueryType);
+      if (selectQueryType === 'start') {
+        const response = await getGeoCode(Querydata.startQuery, selectQueryType);
 
         if (response && response.searchData && response.centerPoint) {
           setSearchData(response.searchData);
-          setSelecPointType(selecQueryType);
+          setSelectPointType(selectQueryType);
           setCenterPoint(response.centerPoint);
         }
       }
 
-      if (selecQueryType === 'end') {
-        const response = await getGeoCode(Querydata.endQuery, selecQueryType);
+      if (selectQueryType === 'end') {
+        const response = await getGeoCode(Querydata.endQuery, selectQueryType);
 
         if (response && response.searchData && response.centerPoint) {
           setSearchData(response.searchData);
-          setSelecPointType(selecQueryType);
+          setSelectPointType(selectQueryType);
           setCenterPoint(response.centerPoint);
         }
       }
@@ -57,17 +65,21 @@ export const RouteScreen: React.FC = () => {
     }
   };
 
-  const [startPoint, setStartPoint] = useState({});
+  const [startPoint, setStartPoint] = useState<LatLongType>();
 
-  const [endPoint, setEndPoint] = useState({});
+  const [endPoint, setEndPoint] = useState<LatLongType>();
 
   const [modalVisible, setModalVisible] = useState(false);
 
   const [selectedMarker, setSelectedMarker] = useState(null);
 
-  const [selecQueryType, setSelecQueryType] = useState<'start' | 'end'>('start');
+  const [selectQueryType, setSelectQueryType] = useState<SelectQueryEnum>(
+    SelectQueryEnum.START
+  );
 
-  const [selecPointType, setSelecPointType] = useState<'start' | 'end'>('start');
+  const [selectPointType, setSelectPointType] = useState<SelectQueryEnum>(
+    SelectQueryEnum.START
+  );
 
   console.log(Querydata.startQuery, Querydata.endQuery);
 
@@ -81,7 +93,7 @@ export const RouteScreen: React.FC = () => {
 
   const handlePointClick = () => {
     if (selectedMarker) {
-      if (selecPointType === 'start') {
+      if (selectPointType === 'start') {
         setQueryData({
           ...Querydata,
           startQuery: selectedMarker.title,
@@ -91,7 +103,7 @@ export const RouteScreen: React.FC = () => {
           longitude: Number(selectedMarker.mapx) / Math.pow(10, 7),
         });
       }
-      if (selecPointType === 'end') {
+      if (selectPointType === 'end') {
         setQueryData({
           ...Querydata,
           endQuery: selectedMarker.title,
@@ -114,20 +126,20 @@ export const RouteScreen: React.FC = () => {
             placeholder="출발지"
             value={Querydata.startQuery}
             onChangeText={(text) => handleChangQuery('startQuery', text)}
-            onPressOut={() => setSelecQueryType('start')}
+            onPressOut={() => setSelectQueryType(SelectQueryEnum.START)}
           />
           <TextInput
             style={styles.input}
             placeholder="목적지"
             value={Querydata.endQuery}
             onChangeText={(text) => handleChangQuery('endQuery', text)}
-            onPressOut={() => setSelecQueryType('end')}
+            onPressOut={() => setSelectQueryType(SelectQueryEnum.END)}
           />
         </View>
         <NaverMapView
           style={{ width: '100%', height: '60%' }}
           showsMyLocationButton={true}
-          center={{ ...centerPoint, zoom: 13 }}
+          center={{ ...centerPoint, zoom: 14 }}
           //  onTouch={e => console.log('onTouch', JSON.stringify(e.nativeEvent))}
           //  onCameraChange={e => console.log('onCameraChange', JSON.stringify(e))}
           onMapClick={(e) => console.log('onMapClick', JSON.stringify(e))}
@@ -141,6 +153,10 @@ export const RouteScreen: React.FC = () => {
               }}
               pinColor="red"
               onClick={() => handleMarkerClick(item)}
+              caption={{
+                text: item.title.replace(/<\/?[^>]+(>|$)/g, ''),
+                align: Align.Top,
+              }}
             />
           ))}
         </NaverMapView>
