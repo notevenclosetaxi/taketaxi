@@ -6,15 +6,20 @@ import NaverMapView, { Circle, Marker, Path, Polyline, Polygon } from 'react-nat
 import axios from 'axios';
 import { useState } from 'react';
 import { RouteStackParamList } from '../../navigator/Stacks/RouteStack/RouteStack';
+import { RouteQuery, RouteQueryRes } from '../../interface';
+import { getGeoCode } from '../../service/route.service';
 
 export const RouteScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RouteStackParamList>>();
 
-  const P0 = { latitude: 37.564362, longitude: 126.977011 };
+  const [centerPoint, setCenterPoint] = useState<RouteQueryRes>({
+    latitude: 37.564362,
+    longitude: 126.977011,
+  });
 
-  const [searchData, setSearchData] = useState([]);
+  const [searchData, setSearchData] = useState<RouteQueryRes>([]);
 
-  const [Querydata, setQueryData] = useState<{ startQuery: string; endQuery: string }>({
+  const [Querydata, setQueryData] = useState<RouteQuery>({
     startQuery: '',
     endQuery: '',
   });
@@ -26,36 +31,29 @@ export const RouteScreen: React.FC = () => {
     });
   };
 
-  const getGeoCode = async () => {
-    const headers = {
-      'X-Naver-Client-Id': 'O5tSyx_ROEO1JjJ3zK6Z',
-      'X-Naver-Client-Secret': 'oWD2npmwvX',
-    };
-    const url: string = 'https://openapi.naver.com/v1/search/local.json';
+  const handleGetGeoCode = async () => {
+    try {
+      if (selecQueryType === 'start') {
+        const response = await getGeoCode(Querydata.startQuery, selecQueryType);
 
-    if (selecQueryType === 'start') {
-      try {
-        const res: any = await axios.get(
-          `${url}?query=${Querydata.startQuery}&display=5&sort=random`,
-          { headers }
-        );
-        setSearchData(res.data.items);
-        setSelecPointType('start');
-      } catch (err) {
-        console.log(err);
+        if (response && response.searchData && response.centerPoint) {
+          setSearchData(response.searchData);
+          setSelecPointType(selecQueryType);
+          setCenterPoint(response.centerPoint);
+        }
       }
-    }
-    if (selecQueryType === 'end') {
-      try {
-        const res: any = await axios.get(
-          `${url}?query=${Querydata.endQuery}&display=5&sort=random`,
-          { headers }
-        );
-        setSearchData(res.data.items);
-        setSelecPointType('end');
-      } catch (err) {
-        console.log(err);
+
+      if (selecQueryType === 'end') {
+        const response = await getGeoCode(Querydata.endQuery, selecQueryType);
+
+        if (response && response.searchData && response.centerPoint) {
+          setSearchData(response.searchData);
+          setSelecPointType(selecQueryType);
+          setCenterPoint(response.centerPoint);
+        }
       }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -129,7 +127,7 @@ export const RouteScreen: React.FC = () => {
         <NaverMapView
           style={{ width: '100%', height: '60%' }}
           showsMyLocationButton={true}
-          center={{ ...P0, zoom: 16 }}
+          center={{ ...centerPoint, zoom: 13 }}
           //  onTouch={e => console.log('onTouch', JSON.stringify(e.nativeEvent))}
           //  onCameraChange={e => console.log('onCameraChange', JSON.stringify(e))}
           onMapClick={(e) => console.log('onMapClick', JSON.stringify(e))}
@@ -157,9 +155,9 @@ export const RouteScreen: React.FC = () => {
           </View>
         </Modal>
 
-        <Button title="출발지 검색" onPress={() => getGeoCode()} />
+        <Button title="출발지 검색" onPress={() => handleGetGeoCode()} />
 
-        <Button title="목적지 검색" onPress={() => getGeoCode()} />
+        <Button title="목적지 검색" onPress={() => handleGetGeoCode()} />
 
         <Button title="경로 탐색" />
       </SafeAreaView>
