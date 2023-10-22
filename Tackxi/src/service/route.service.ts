@@ -1,5 +1,8 @@
 import axios from 'axios';
-import { RouteQuerySearchRes } from '../interface/http/response/route.response';
+import {
+  RouteInfoListRes,
+  RouteQuerySearchRes,
+} from '../interface/http/response/route.response';
 import { X_Naver_Client_Id } from '@env';
 import { X_Naver_Client_Secret } from '@env';
 import { SelectQueryEnum } from '../enum';
@@ -29,6 +32,19 @@ export const getGeoCode = async (
     };
   } catch (err) {
     console.error(err);
+    throw err;
+  }
+};
+
+export const getRouteList = async (): Promise<RouteInfoListRes> => {
+  try {
+    const res = await axios.get(
+      '/Users/junpyooh/reactnativeApp/taketaxi/Tackxi/ToUijeongbuMockResponse.json'
+    );
+
+    return res.data;
+  } catch (err) {
+    console.log(err);
     throw err;
   }
 };
