@@ -15,10 +15,29 @@ export const RouteInfo: React.FC = () => {
   // };
   // console.log('res', routeListData);
 
+  const [routeList, setRouteList] = useState(routedata.InfoList);
+
+  const sortByDuration = () => {
+    const sortedTimeList = [...routeList].sort(
+      (a, b) => b.summary.savedTime - a.summary.savedTime
+    );
+    setRouteList(sortedTimeList);
+    // console.log(sortedTimeList);
+  };
+
+  const sortByPrice = () => {
+    const sortedMoneyList = [...routeList].sort(
+      (a, b) => a.summary.taxiFare - b.summary.taxiFare
+    );
+    setRouteList(sortedMoneyList);
+    // console.log(sortedMoneyList);
+  };
   return (
     <SafeAreaView>
       <ScrollView>
-        {routedata.InfoList.map((item, idx) => (
+        <Button title="최단 시간이 좋아요" onPress={() => sortByDuration()}></Button>
+        <Button title="경제적으로 타고 싶어요" onPress={() => sortByPrice()}></Button>
+        {routeList.map((item, idx) => (
           <View key={idx} style={styles.MainBox}>
             <Text style={styles.MainText}>택시 요금 : {item.summary.taxiFare}원</Text>
             <Text style={styles.MainText}>
