@@ -176,6 +176,8 @@ export const RouteScreen: React.FC = () => {
         <Button title="목적지 검색" onPress={() => handleGetGeoCode()} />
 
         <Button title="경로 탐색" />
+
+        <Button title="리스트" onPress={() => navigation.navigate('routeInfo')} />
       </SafeAreaView>
     </>
   );

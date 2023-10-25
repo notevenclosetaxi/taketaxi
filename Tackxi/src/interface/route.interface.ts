@@ -16,3 +16,8 @@ export interface LatLongType {
   latitude: number;
   longitude: number;
 }
+
+export interface RouteInfoRes {
+  data?: any;
+  InfoList: object;
+}
