@@ -6,6 +6,7 @@ import {
 import { X_Naver_Client_Id } from '@env';
 import { X_Naver_Client_Secret } from '@env';
 import { SelectQueryEnum } from '../enum';
+import { mock } from '../../mock';
 const QuerySearchURL: string = 'https://openapi.naver.com/v1/search/local.json';
 
 export const getGeoCode = async (
@@ -36,13 +37,14 @@ export const getGeoCode = async (
   }
 };
 
-export const getRouteList = async (): Promise<RouteInfoListRes> => {
+export const getRouteList = () => {
   try {
-    const res = await axios.get(
-      '/Users/junpyooh/reactnativeApp/taketaxi/Tackxi/ToUijeongbuMockResponse.json'
-    );
+    const res = mock;
 
-    return res.data;
+    return {
+      item: res.infoList.map((item, idx) => item),
+      station: res.stationInfo,
+    };
   } catch (err) {
     console.log(err);
     throw err;

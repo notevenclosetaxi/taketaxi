@@ -2,6 +2,7 @@ import { Button, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-
 import { getRouteList } from '../../service/route.service';
 import { useState } from 'react';
 import { routedata } from '../../../routedate';
+import { mock } from '../../../mock';
 
 export const RouteInfo: React.FC = () => {
   // const [routeListData, setRouteListData] = useState([]);
@@ -15,21 +16,23 @@ export const RouteInfo: React.FC = () => {
   // };
   // console.log('res', routeListData);
 
-  const [routeList, setRouteList] = useState(routedata.InfoList);
+  const [realRouteList, setRealRouteList] = useState(getRouteList().item);
+
+  console.log(realRouteList);
 
   const sortByDuration = () => {
-    const sortedTimeList = [...routeList].sort(
+    const sortedTimeList = [...realRouteList].sort(
       (a, b) => b.summary.savedTime - a.summary.savedTime
     );
-    setRouteList(sortedTimeList);
+    setRealRouteList(sortedTimeList);
     // console.log(sortedTimeList);
   };
 
   const sortByPrice = () => {
-    const sortedMoneyList = [...routeList].sort(
+    const sortedMoneyList = [...realRouteList].sort(
       (a, b) => a.summary.taxiFare - b.summary.taxiFare
     );
-    setRouteList(sortedMoneyList);
+    setRealRouteList(sortedMoneyList);
     // console.log(sortedMoneyList);
   };
   return (
@@ -37,7 +40,7 @@ export const RouteInfo: React.FC = () => {
       <ScrollView>
         <Button title="최단 시간이 좋아요" onPress={() => sortByDuration()}></Button>
         <Button title="경제적으로 타고 싶어요" onPress={() => sortByPrice()}></Button>
-        {routeList.map((item, idx) => (
+        {realRouteList.map((item, idx) => (
           <View key={idx} style={styles.MainBox}>
             <Text style={styles.MainText}>택시 요금 : {item.summary.taxiFare}원</Text>
             <Text style={styles.MainText}>
