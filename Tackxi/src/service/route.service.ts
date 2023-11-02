@@ -7,6 +7,7 @@ import { X_Naver_Client_Id } from '@env';
 import { X_Naver_Client_Secret } from '@env';
 import { SelectQueryEnum } from '../enum';
 import { mock } from '../../mock';
+import { LatLongType, Route, StationInfo } from '../interface';
 const QuerySearchURL: string = 'https://openapi.naver.com/v1/search/local.json';
 
 export const getGeoCode = async (
@@ -48,5 +49,23 @@ export const getRouteList = () => {
   } catch (err) {
     console.log(err);
     throw err;
+  }
+};
+
+export const getCoordinates = (testRoute1: Route, stationInfo: StationInfo) => {
+  {
+    let coordinates: Record<string, LatLongType[]> = { TAXI: [], BUS: [], WALK: [] };
+
+    testRoute1.steps.forEach((step) => {
+      step.stationList.map((station) => {
+        if (stationInfo[station]) {
+          coordinates[step.mode].push({
+            latitude: Number(stationInfo[station].lat),
+            longitude: Number(stationInfo[station].lon),
+          });
+        }
+      });
+    });
+    return coordinates;
   }
 };

@@ -14,16 +14,26 @@ import axios from 'axios';
 import { useState } from 'react';
 import { RouteStackParamList } from '../../navigator/Stacks/RouteStack/RouteStack';
 import { LatLongType, RouteQuery, RouteQueryRes } from '../../interface';
-import { getGeoCode } from '../../service/route.service';
+import { getCoordinates, getGeoCode, getRouteList } from '../../service/route.service';
 import { SelectQueryEnum } from '../../enum';
 
 export const RouteScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RouteStackParamList>>();
 
   const [centerPoint, setCenterPoint] = useState<LatLongType>({
-    latitude: 37.564362,
-    longitude: 126.977011,
+    latitude: 37.53655,
+    longitude: 126.877986,
   });
+
+  //지도에 경로 표시
+
+  const stationInfo = getRouteList().station;
+
+  const testRoute1 = getRouteList().item[0];
+
+  const coordinates = getCoordinates(testRoute1, stationInfo);
+
+  //검색 관련
 
   const [searchData, setSearchData] = useState<object>([]);
 
@@ -31,6 +41,10 @@ export const RouteScreen: React.FC = () => {
     startQuery: '',
     endQuery: '',
   });
+
+  console.log('bus', coordinates.BUS);
+  console.log('taxi', coordinates.TAXI);
+  console.log('walk', coordinates.WALK);
 
   const handleChangQuery = (name: 'startQuery' | 'endQuery', text: string): void => {
     setQueryData({
@@ -159,6 +173,9 @@ export const RouteScreen: React.FC = () => {
               }}
             />
           ))}
+          <Path coordinates={coordinates.BUS} color="#34447F" />
+          <Path coordinates={coordinates.WALK} color="#777" />
+          <Path coordinates={coordinates.TAXI} color="#f57c2c" />
         </NaverMapView>
 
         <Modal visible={modalVisible} transparent={true} animationType="fade">
