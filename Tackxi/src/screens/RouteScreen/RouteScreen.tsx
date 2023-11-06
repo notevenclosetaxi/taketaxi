@@ -11,11 +11,12 @@ import NaverMapView, {
   Align,
 } from 'react-native-nmap';
 import axios from 'axios';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { RouteStackParamList } from '../../navigator/Stacks/RouteStack/RouteStack';
 import { LatLongType, RouteQuery, RouteQueryRes } from '../../interface';
-import { getCoordinates, getGeoCode, getRouteList } from '../../service/route.service';
+import { getGeoCode, getRouteList } from '../../service/route.service';
 import { SelectQueryEnum } from '../../enum';
+import { getCoordinates } from '../../utils/route.util';
 
 export const RouteScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RouteStackParamList>>();
@@ -27,11 +28,17 @@ export const RouteScreen: React.FC = () => {
 
   //지도에 경로 표시
 
-  const stationInfo = getRouteList().station;
+  const stationInfo = useMemo(() => {
+    return getRouteList().station;
+  }, []);
 
-  const testRoute1 = getRouteList().item[0];
+  const testRoute1 = useMemo(() => {
+    return getRouteList().item[0];
+  }, []);
 
-  const coordinates = getCoordinates(testRoute1, stationInfo);
+  const coordinates = useMemo(() => {
+    return getCoordinates(testRoute1, stationInfo);
+  }, [testRoute1, stationInfo]);
 
   //검색 관련
 
