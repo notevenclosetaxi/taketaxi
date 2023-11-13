@@ -51,3 +51,30 @@ export const getRouteList = () => {
     throw err;
   }
 };
+
+export const getRoutePath = async (startPoint: LatLongType, endPoint: LatLongType) => {
+  const url = 'http://diligentp.com:8080/search';
+
+  try {
+    const res = await axios.get(
+      `${url}/${startPoint?.latitude}/${startPoint?.longitude}/${endPoint?.latitude}/${endPoint?.longitude}`
+    );
+
+    return {
+      data: res.data,
+      busRoutes: res.data.busRoutes.bus,
+      taxiRoutes: res.data.taxiRoutes.gpx.map((item, idx) => {
+        return {
+          latitude: Number(item[1]),
+          longitude: Number(item[0]),
+        };
+      }),
+    };
+  } catch (err) {
+    if (axios.isAxiosError<any>(err)) {
+      console.log('axios err', err.response);
+    } else {
+      console.log('err', err);
+    }
+  }
+};

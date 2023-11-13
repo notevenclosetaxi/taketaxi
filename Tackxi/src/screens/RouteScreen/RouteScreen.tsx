@@ -14,16 +14,17 @@ import axios from 'axios';
 import { useMemo, useState } from 'react';
 import { RouteStackParamList } from '../../navigator/Stacks/RouteStack/RouteStack';
 import { LatLongType, RouteQuery, RouteQueryRes } from '../../interface';
-import { getGeoCode, getRouteList } from '../../service/route.service';
+import { getGeoCode, getRouteList, getRoutePath } from '../../service/route.service';
 import { SelectQueryEnum } from '../../enum';
 import { getCoordinates } from '../../utils/route.util';
+import { SearchInput } from './SearchInput';
 
 export const RouteScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RouteStackParamList>>();
 
   const [centerPoint, setCenterPoint] = useState<LatLongType>({
-    latitude: 37.53655,
-    longitude: 126.877986,
+    latitude: 37.5537438,
+    longitude: 126.9697745,
   });
 
   //지도에 경로 표시
@@ -49,15 +50,49 @@ export const RouteScreen: React.FC = () => {
     endQuery: '',
   });
 
-  console.log('bus', coordinates.BUS);
-  console.log('taxi', coordinates.TAXI);
-  console.log('walk', coordinates.WALK);
+  const [PathData, setPathData] = useState<any>();
+
+  const [TaxiPathData, setTaxiPathData] = useState<any>();
+
+  const [RouteGPX, setRouteGpx] = useState<any>();
+
+  const [RouteTaxiGpx, setRouteTaxiGpx] = useState<any>();
 
   const handleChangQuery = (name: 'startQuery' | 'endQuery', text: string): void => {
     setQueryData({
       ...Querydata,
       [name]: text,
     });
+  };
+
+  console.log('taxi', TaxiPathData);
+
+  const handleGetRoutePath = async () => {
+    try {
+      if (startPoint && endPoint) {
+        const res = await getRoutePath(startPoint, endPoint);
+        setPathData(res?.busRoutes);
+        setTaxiPathData(res?.taxiRoutes);
+      } else console.log('no data');
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const getCood = (option) => {
+    let coordinates = {};
+
+    Object.keys(option).forEach((key) => {
+      const step = option[key];
+      coordinates[step.mode] = step.gpx.map((cood) => {
+        return {
+          latitude: Number(cood[1]),
+          longitude: Number(cood[0]),
+        };
+      });
+    });
+    setRouteGpx(coordinates);
+    setRouteTaxiGpx(TaxiPathData);
   };
 
   const handleGetGeoCode = async () => {
@@ -104,7 +139,7 @@ export const RouteScreen: React.FC = () => {
 
   console.log(Querydata.startQuery, Querydata.endQuery);
 
-  console.log(startPoint, endPoint);
+  console.log('좌표', startPoint, endPoint);
 
   const handleMarkerClick = (item) => {
     item.title = item.title.replace(/<\/?[^>]+(>|$)/g, '');
@@ -141,6 +176,9 @@ export const RouteScreen: React.FC = () => {
   return (
     <>
       <SafeAreaView>
+        {/* <View>
+          <SearchInput queryData={Querydata} setQueryData={setQueryData} />
+        </View> */}
         <View>
           <TextInput
             style={styles.input}
@@ -180,9 +218,11 @@ export const RouteScreen: React.FC = () => {
               }}
             />
           ))}
-          <Path coordinates={coordinates.BUS} color="#34447F" />
-          <Path coordinates={coordinates.WALK} color="#777" />
-          <Path coordinates={coordinates.TAXI} color="#f57c2c" />
+
+          {RouteGPX && <Path coordinates={RouteGPX.BUS} color="#34447F" />}
+          {RouteGPX && <Path coordinates={RouteGPX.WALK} color="#777" />}
+          {RouteGPX && <Path coordinates={RouteGPX.SUBWAY} color="green" />}
+          {RouteTaxiGpx && <Path coordinates={RouteTaxiGpx} color="#f57c2c" />}
         </NaverMapView>
 
         <Modal visible={modalVisible} transparent={true} animationType="fade">
@@ -199,9 +239,16 @@ export const RouteScreen: React.FC = () => {
 
         <Button title="목적지 검색" onPress={() => handleGetGeoCode()} />
 
-        <Button title="경로 탐색" />
+        <Button
+          title="경로 탐색"
+          onPress={() => {
+            handleGetRoutePath();
+          }}
+        />
 
         <Button title="리스트" onPress={() => navigation.navigate('routeInfo')} />
+
+        <Button title="경로테스트" onPress={() => getCood(PathData.option1)} />
       </SafeAreaView>
     </>
   );
