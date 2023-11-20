@@ -7,7 +7,7 @@ import { TimeUtil } from '../../../../utils';
 import { IconTableExport } from 'tabler-icons-react-native';
 
 interface SuggestionProps {
-  info: Option[];
+  info: Option;
   TaxiInfo: TaxiInfo;
 }
 
@@ -31,48 +31,33 @@ const Suggestion: React.FC<SuggestionProps> = ({ info, TaxiInfo }) => {
               <Text style={{ fontSize: 15 }}>택시비 - {TaxiInfo['taxiFare(won)']}원</Text>
               <View style={styled.rowDivider} />
               <Text style={{ fontSize: 15 }}>
-                소요 시간 - {TimeUtil.setSecondToMinute(TaxiInfo['spendTime(Sec)'])}분
+                소요 시간 -{' '}
+                {TimeUtil.setSecondToMinute(
+                  info.steps.reduce((acc, cur) => acc + cur.spendTime, 0)
+                )}
+                분
               </Text>
             </View>
           </View>
           <View style={styled.simpleWrap}>
-            {info.map((option, idx) => (
-              <View key={idx}>
-                <SimpleStep
-                  key={`step0-${option}`}
-                  step={option.step0}
-                  wastedTime={option.step0.spendTime}
-                />
-              </View>
+            {info.steps.map((step) => (
+              <SimpleStep
+                key={`step0-${step.spendTime}`}
+                step={step}
+                wastedTime={step.spendTime}
+              />
             ))}
           </View>
         </View>
         <View style={[styled.columnDivider, { height: 2 }]} />
 
         <View style={styled.detailRoute}>
-          {info.map((option, idx) => (
-            <View key={idx}>
-              <DetailStep
-                key={`step0-${option.step0.spendTime}`}
-                step={option.step0}
-                taxiFare={TaxiInfo['taxiFare(won)']}
-              />
-              <DetailStep
-                key={`step1-${option.step1.spendTime}`}
-                step={option.step1}
-                taxiFare={TaxiInfo['taxiFare(won)']}
-              />
-              <DetailStep
-                key={`step2-${option.step2.spendTime}`}
-                step={option.step2}
-                taxiFare={TaxiInfo['taxiFare(won)']}
-              />
-              <DetailStep
-                key={`step3-${option.step3.spendTime}`}
-                step={option.step3}
-                taxiFare={TaxiInfo['taxiFare(won)']}
-              />
-            </View>
+          {info.steps.map((step) => (
+            <DetailStep
+              key={`step0-${step.spendTime}`}
+              step={step}
+              taxiFare={TaxiInfo['taxiFare(won)']}
+            />
           ))}
         </View>
       </View>

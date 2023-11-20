@@ -25,14 +25,14 @@ const SuggestionScreen: React.FC = (props: any) => {
 
   const optionsArray = routeData && Object.values(routeData);
 
-  // console.log('optionsArray', optionsArray);
-
   const newOptionsArray = optionsArray.map((option) => ({
     ...option,
     step0: {
       mode: 'TAXI',
       startName: startQuery,
       spendTime: TaxiData['spendTime(Sec)'],
+      taxiFare: TaxiData['taxiFare(won)'],
+      costPerDistance: TaxiData.costPerDistance,
     },
 
     step1: { ...option.step1, startName: `${option.step2.startName} 근처` },
@@ -42,8 +42,6 @@ const SuggestionScreen: React.FC = (props: any) => {
       endName: endQuery,
     },
   }));
-
-  console.log('newOpa', newOptionsArray[0]);
 
   let newData = newOptionsArray.map((item) => {
     let steps = [];
@@ -56,13 +54,25 @@ const SuggestionScreen: React.FC = (props: any) => {
     return { steps };
   });
 
+  // console.log(
+  //   'newData',
+  //   newData.map((item) => item.steps.reduce((acc, cur) => acc + cur.spendTime, 0))
+  // );
+
+  console.log(
+    'newData',
+    newData.map((info) => info.steps.costPerDistance)
+  );
+
   return (
     <BaseView>
       <SearchInput />
       <ScrollView style={styled.body}>
-        <TouchableOpacity activeOpacity={1}>
-          <Suggestion info={newData} TaxiInfo={TaxiData} />
-        </TouchableOpacity>
+        {newData.map((info, idx) => (
+          <TouchableOpacity activeOpacity={1}>
+            <Suggestion info={info} TaxiInfo={TaxiData} />
+          </TouchableOpacity>
+        ))}
       </ScrollView>
     </BaseView>
   );

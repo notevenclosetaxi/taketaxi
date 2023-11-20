@@ -72,17 +72,11 @@ export interface Step {
   endName: string;
   spendTime: number;
   gpx: string[][];
+  costPerDistance?: number;
 }
 
 export interface Option {
-  step0: Step;
-  step1: Step;
-  step2: Step;
-  step3: Step;
-}
-
-export interface SuggestionProps {
-  info: Option[];
+  steps: Step[];
 }
 
 export interface TaxiInfo {
