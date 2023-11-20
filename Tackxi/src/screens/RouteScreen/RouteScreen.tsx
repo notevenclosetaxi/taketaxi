@@ -15,9 +15,16 @@ import { useMemo, useState } from 'react';
 import { RouteStackParamList } from '../../navigator/Stacks/RouteStack/RouteStack';
 import { LatLongType, RouteQuery, RouteQueryRes } from '../../interface';
 import { getGeoCode, getRouteList, getRoutePath } from '../../service/route.service';
-import { SelectQueryEnum } from '../../enum';
+import { SelectQueryEnum } from '../../enums';
 import { getCoordinates } from '../../utils/route.util';
 import { SearchInput } from './SearchInput';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../redux/store';
+import { handleChangQuery } from '../../redux/features/map/querySlice';
+import {
+  SuggestionStackNavigationProp,
+  SuggestionStackParamList,
+} from '../../navigator/Stacks/SuggestionStack/SuggestionStack';
 
 export const RouteScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RouteStackParamList>>();
@@ -27,19 +34,25 @@ export const RouteScreen: React.FC = () => {
     longitude: 126.9697745,
   });
 
+  const { startQuery, endQuery, selectQueryType } = useSelector(
+    (state: RootState) => state.query
+  );
+
+  const dispatch = useDispatch();
+
   //지도에 경로 표시
 
-  const stationInfo = useMemo(() => {
-    return getRouteList().station;
-  }, []);
+  // const stationInfo = useMemo(() => {
+  //   return getRouteList().station;
+  // }, []);
 
-  const testRoute1 = useMemo(() => {
-    return getRouteList().item[0];
-  }, []);
+  // const testRoute1 = useMemo(() => {
+  //   return getRouteList().item[0];
+  // }, []);
 
-  const coordinates = useMemo(() => {
-    return getCoordinates(testRoute1, stationInfo);
-  }, [testRoute1, stationInfo]);
+  // const coordinates = useMemo(() => {
+  //   return getCoordinates(testRoute1, stationInfo);
+  // }, [testRoute1, stationInfo]);
 
   //검색 관련
 
@@ -58,14 +71,16 @@ export const RouteScreen: React.FC = () => {
 
   const [RouteTaxiGpx, setRouteTaxiGpx] = useState<any>();
 
-  const handleChangQuery = (name: 'startQuery' | 'endQuery', text: string): void => {
-    setQueryData({
-      ...Querydata,
-      [name]: text,
-    });
-  };
+  const [TaxiData, setTaxiData] = useState<any>();
 
-  console.log('taxi', TaxiPathData);
+  // const handleChangQuery = (name: 'startQuery' | 'endQuery', text: string): void => {
+  //   setQueryData({
+  //     ...Querydata,
+  //     [name]: text,
+  //   });
+  // };
+
+  console.log('pd', PathData);
 
   const handleGetRoutePath = async () => {
     try {
@@ -73,11 +88,14 @@ export const RouteScreen: React.FC = () => {
         const res = await getRoutePath(startPoint, endPoint);
         setPathData(res?.busRoutes);
         setTaxiPathData(res?.taxiRoutes);
+        setTaxiData(res?.taxiData);
       } else console.log('no data');
     } catch (err) {
       console.log(err);
     }
   };
+
+  console.log(TaxiData);
 
   const getCood = (option) => {
     let coordinates = {};
@@ -97,8 +115,8 @@ export const RouteScreen: React.FC = () => {
 
   const handleGetGeoCode = async () => {
     try {
-      if (selectQueryType === 'start') {
-        const response = await getGeoCode(Querydata.startQuery, selectQueryType);
+      if (selectQueryType === 'startQuery') {
+        const response = await getGeoCode(startQuery, selectQueryType);
 
         if (response && response.searchData && response.centerPoint) {
           setSearchData(response.searchData);
@@ -107,8 +125,8 @@ export const RouteScreen: React.FC = () => {
         }
       }
 
-      if (selectQueryType === 'end') {
-        const response = await getGeoCode(Querydata.endQuery, selectQueryType);
+      if (selectQueryType === 'endQuery') {
+        const response = await getGeoCode(endQuery, selectQueryType);
 
         if (response && response.searchData && response.centerPoint) {
           setSearchData(response.searchData);
@@ -129,15 +147,15 @@ export const RouteScreen: React.FC = () => {
 
   const [selectedMarker, setSelectedMarker] = useState(null);
 
-  const [selectQueryType, setSelectQueryType] = useState<SelectQueryEnum>(
-    SelectQueryEnum.START
-  );
+  // const [selectQueryType, setSelectQueryType] = useState<SelectQueryEnum>(
+  //   SelectQueryEnum.START
+  // );
 
   const [selectPointType, setSelectPointType] = useState<SelectQueryEnum>(
     SelectQueryEnum.START
   );
 
-  console.log(Querydata.startQuery, Querydata.endQuery);
+  console.log(startQuery, endQuery);
 
   console.log('좌표', startPoint, endPoint);
 
@@ -149,21 +167,17 @@ export const RouteScreen: React.FC = () => {
 
   const handlePointClick = () => {
     if (selectedMarker) {
-      if (selectPointType === 'start') {
-        setQueryData({
-          ...Querydata,
-          startQuery: selectedMarker.title,
-        });
+      if (selectPointType === 'startQuery') {
+        dispatch(handleChangQuery({ type: 'startQuery', text: selectedMarker.title }));
+
         setStartPoint({
           latitude: Number(selectedMarker.mapy) / Math.pow(10, 7),
           longitude: Number(selectedMarker.mapx) / Math.pow(10, 7),
         });
       }
-      if (selectPointType === 'end') {
-        setQueryData({
-          ...Querydata,
-          endQuery: selectedMarker.title,
-        });
+      if (selectPointType === 'endQuery') {
+        dispatch(handleChangQuery({ type: 'endQuery', text: selectedMarker.title }));
+
         setEndPoint({
           latitude: Number(selectedMarker.mapy) / Math.pow(10, 7),
           longitude: Number(selectedMarker.mapx) / Math.pow(10, 7),
@@ -176,9 +190,10 @@ export const RouteScreen: React.FC = () => {
   return (
     <>
       <SafeAreaView>
-        {/* <View>
-          <SearchInput queryData={Querydata} setQueryData={setQueryData} />
-        </View> */}
+        <SearchInput />
+
+        {/* 
+
         <View>
           <TextInput
             style={styles.input}
@@ -194,7 +209,8 @@ export const RouteScreen: React.FC = () => {
             onChangeText={(text) => handleChangQuery('endQuery', text)}
             onPressOut={() => setSelectQueryType(SelectQueryEnum.END)}
           />
-        </View>
+        </View> */}
+
         <NaverMapView
           style={{ width: '100%', height: '60%' }}
           showsMyLocationButton={true}
@@ -235,9 +251,7 @@ export const RouteScreen: React.FC = () => {
           </View>
         </Modal>
 
-        <Button title="출발지 검색" onPress={() => handleGetGeoCode()} />
-
-        <Button title="목적지 검색" onPress={() => handleGetGeoCode()} />
+        <Button title="검색" onPress={() => handleGetGeoCode()} />
 
         <Button
           title="경로 탐색"
@@ -246,7 +260,25 @@ export const RouteScreen: React.FC = () => {
           }}
         />
 
-        <Button title="리스트" onPress={() => navigation.navigate('routeInfo')} />
+        <Button
+          title="리스트"
+          onPress={() =>
+            navigation.navigate('routeInfo', {
+              routeData: PathData,
+              TaxiData: TaxiData,
+            })
+          }
+        />
+
+        <Button
+          title="리스트2"
+          onPress={() =>
+            navigation.navigate('suggestion', {
+              routeData: PathData,
+              TaxiData: TaxiData,
+            })
+          }
+        />
 
         <Button title="경로테스트" onPress={() => getCood(PathData.option1)} />
       </SafeAreaView>

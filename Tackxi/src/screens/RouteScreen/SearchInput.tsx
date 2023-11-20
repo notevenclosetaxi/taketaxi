@@ -3,14 +3,24 @@ import { RouteQuery } from '../../interface';
 import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { IconArrowsExchange, IconX } from 'tabler-icons-react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../redux/store';
+import {
+  handleChangQuery,
+  setSelectQueryType,
+} from '../../redux/features/map/querySlice';
 
-export const SearchInput = ({ queryData, setQueryData }: any) => {
-  const handleChangQuery = (name: 'startQuery' | 'endQuery', text: string): void => {
-    setQueryData({
-      ...queryData,
-      [name]: text,
-    });
-  };
+export const SearchInput = () => {
+  // const handleChangQuery = (name: 'startQuery' | 'endQuery', text: string): void => {
+  //   setQueryData({
+  //     ...queryData,
+  //     [name]: text,
+  //   });
+  // };
+
+  const dispatch = useDispatch();
+
+  const { startQuery, endQuery } = useSelector((state: RootState) => state.query);
 
   return (
     <View style={styled.container}>
@@ -18,14 +28,18 @@ export const SearchInput = ({ queryData, setQueryData }: any) => {
         <TextInput
           style={styled.input}
           placeholder="출발지"
-          value={queryData.startQuery}
-          onChangeText={(text) => handleChangQuery('startQuery', text)}
+          value={startQuery}
+          onChangeText={(text) =>
+            dispatch(handleChangQuery({ type: 'startQuery', text }))
+          }
+          onPressOut={() => dispatch(setSelectQueryType('startQuery'))}
         />
         <TextInput
           style={styled.input}
           placeholder="목적지"
-          value={queryData.endQuery}
-          onChangeText={(text) => handleChangQuery('endQuery', text)}
+          value={endQuery}
+          onChangeText={(text) => dispatch(handleChangQuery({ type: 'endQuery', text }))}
+          onPressOut={() => dispatch(setSelectQueryType('endQuery'))}
         />
       </View>
       <View style={styled.buttonWrap}>

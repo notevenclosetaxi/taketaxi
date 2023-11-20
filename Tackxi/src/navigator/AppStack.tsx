@@ -4,7 +4,7 @@ import {
   createNativeStackNavigator,
 } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
-import { AuthStack, TransportationStack } from './Stacks';
+import { AuthStack, SuggestionStack, TransportationStack } from './Stacks';
 import { TokenService } from '../service';
 import { RouteStack } from './Stacks/RouteStack';
 
@@ -14,6 +14,7 @@ export type AppStackParamList = {
   authStack: undefined;
   transportationStack: undefined;
   routeStack: undefined;
+  suggestionStack: undefined;
 };
 
 export type AppStackNavigationProp<RouteName extends keyof AppStackParamList> =
@@ -46,7 +47,7 @@ const AppStack: React.FC = () => {
   };
 
   return (
-    <Navigator initialRouteName="authStack" screenOptions={{ headerShown: false }}>
+    <Navigator initialRouteName="routeStack" screenOptions={{ headerShown: false }}>
       <Screen name="authStack" component={AuthStack} />
       {isAuth && <Screen name="transportationStack" component={TransportationStack} />}
       <Screen name="routeStack" component={RouteStack} />
