@@ -1,79 +1,145 @@
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Button, Modal, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  Button,
+  Modal,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import NaverMapView, { Circle, Marker, Path, Polyline, Polygon } from 'react-native-nmap';
+import NaverMapView, {
+  Circle,
+  Marker,
+  Path,
+  Polyline,
+  Polygon,
+  Align,
+} from 'react-native-nmap';
 import axios from 'axios';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { RouteStackParamList } from '../../navigator/Stacks/RouteStack/RouteStack';
+import { LatLongType, RouteQuery, RouteQueryRes } from '../../interface';
+import { getGeoCode, getRouteList, getRoutePath } from '../../service/route.service';
+import { SelectQueryEnum } from '../../enums';
+import { convertData, getCoordinates } from '../../utils/route.util';
+import { SearchInput } from './SearchInput';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../redux/store';
+import { handleChangQuery } from '../../redux/features/map/querySlice';
+import { Suggestion } from './components';
+import { wait } from '../../utils/time.util';
+import Animated from 'react-native-reanimated';
+import { IconChevronDown, IconChevronUp } from 'tabler-icons-react-native';
+import { delay } from '@reduxjs/toolkit/dist/utils';
 
-export const RouteScreen: React.FC = () => {
+export const RouteScreen: React.FC = (props: any) => {
   const navigation = useNavigation<NativeStackNavigationProp<RouteStackParamList>>();
+  const dispatch = useDispatch();
 
-  const P0 = { latitude: 37.564362, longitude: 126.977011 };
+  const info = props.route.params && props.route.params.info;
 
-  const [searchData, setSearchData] = useState([]);
+  const gpxInfo = props.route.params && convertData(info.steps);
 
-  const [Querydata, setQueryData] = useState<{ startQuery: string; endQuery: string }>({
+  const [centerPoint, setCenterPoint] = useState<LatLongType>({
+    latitude: 37.5537438,
+    longitude: 126.9697745,
+  });
+
+  const { startQuery, endQuery, selectQueryType } = useSelector(
+    (state: RootState) => state.query
+  );
+
+  //검색 관련
+
+  const [searchData, setSearchData] = useState<object>([]);
+
+  const [Querydata, setQueryData] = useState<RouteQuery>({
     startQuery: '',
     endQuery: '',
   });
 
-  const handleChangQuery = (name: 'startQuery' | 'endQuery', text: string): void => {
-    setQueryData({
-      ...Querydata,
-      [name]: text,
-    });
+  const [PathData, setPathData] = useState<any>();
+
+  const [TaxiData, setTaxiData] = useState<any>();
+
+  const [IsOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    info && setIsOpen(true);
+  }, []);
+
+  const handleIsOpen = () => {
+    setIsOpen(!IsOpen);
   };
 
-  const getGeoCode = async () => {
-    const headers = {
-      'X-Naver-Client-Id': 'O5tSyx_ROEO1JjJ3zK6Z',
-      'X-Naver-Client-Secret': 'oWD2npmwvX',
-    };
-    const url: string = 'https://openapi.naver.com/v1/search/local.json';
+  const handleGetRoutePath = async () => {
+    try {
+      if (startPoint && endPoint) {
+        const res = await getRoutePath(startPoint, endPoint);
+        setPathData(res?.busRoutes);
+        setTaxiData(res?.taxiData);
+        console.log('suc');
 
-    if (selecQueryType === 'start') {
-      try {
-        const res: any = await axios.get(
-          `${url}?query=${Querydata.startQuery}&display=5&sort=random`,
-          { headers }
-        );
-        setSearchData(res.data.items);
-        setSelecPointType('start');
-      } catch (err) {
-        console.log(err);
-      }
-    }
-    if (selecQueryType === 'end') {
-      try {
-        const res: any = await axios.get(
-          `${url}?query=${Querydata.endQuery}&display=5&sort=random`,
-          { headers }
-        );
-        setSearchData(res.data.items);
-        setSelecPointType('end');
-      } catch (err) {
-        console.log(err);
-      }
+        await wait(300);
+
+        navigation.navigate('suggestion', {
+          routeData: res?.busRoutes,
+          TaxiData: res?.taxiData,
+        });
+      } else console.log('no data');
+    } catch (err) {
+      console.log(err);
     }
   };
 
-  const [startPoint, setStartPoint] = useState({});
+  const handleGetGeoCode = async () => {
+    try {
+      if (selectQueryType === 'startQuery') {
+        const response = await getGeoCode(startQuery, selectQueryType);
 
-  const [endPoint, setEndPoint] = useState({});
+        if (response && response.searchData && response.centerPoint) {
+          setSearchData(response.searchData);
+          setSelectPointType(selectQueryType);
+          setCenterPoint(response.centerPoint);
+        }
+      }
+
+      if (selectQueryType === 'endQuery') {
+        const response = await getGeoCode(endQuery, selectQueryType);
+
+        if (response && response.searchData && response.centerPoint) {
+          setSearchData(response.searchData);
+          setSelectPointType(selectQueryType);
+          setCenterPoint(response.centerPoint);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const [startPoint, setStartPoint] = useState<LatLongType>();
+
+  const [endPoint, setEndPoint] = useState<LatLongType>();
 
   const [modalVisible, setModalVisible] = useState(false);
 
   const [selectedMarker, setSelectedMarker] = useState(null);
 
-  const [selecQueryType, setSelecQueryType] = useState<'start' | 'end'>('start');
+  // const [selectQueryType, setSelectQueryType] = useState<SelectQueryEnum>(
+  //   SelectQueryEnum.START
+  // );
 
-  const [selecPointType, setSelecPointType] = useState<'start' | 'end'>('start');
+  const [selectPointType, setSelectPointType] = useState<SelectQueryEnum>(
+    SelectQueryEnum.START
+  );
 
-  console.log(Querydata.startQuery, Querydata.endQuery);
+  console.log(startQuery, endQuery);
 
-  console.log(startPoint, endPoint);
+  console.log('좌표', startPoint, endPoint);
 
   const handleMarkerClick = (item) => {
     item.title = item.title.replace(/<\/?[^>]+(>|$)/g, '');
@@ -83,21 +149,17 @@ export const RouteScreen: React.FC = () => {
 
   const handlePointClick = () => {
     if (selectedMarker) {
-      if (selecPointType === 'start') {
-        setQueryData({
-          ...Querydata,
-          startQuery: selectedMarker.title,
-        });
+      if (selectPointType === 'startQuery') {
+        dispatch(handleChangQuery({ type: 'startQuery', text: selectedMarker.title }));
+
         setStartPoint({
           latitude: Number(selectedMarker.mapy) / Math.pow(10, 7),
           longitude: Number(selectedMarker.mapx) / Math.pow(10, 7),
         });
       }
-      if (selecPointType === 'end') {
-        setQueryData({
-          ...Querydata,
-          endQuery: selectedMarker.title,
-        });
+      if (selectPointType === 'endQuery') {
+        dispatch(handleChangQuery({ type: 'endQuery', text: selectedMarker.title }));
+
         setEndPoint({
           latitude: Number(selectedMarker.mapy) / Math.pow(10, 7),
           longitude: Number(selectedMarker.mapx) / Math.pow(10, 7),
@@ -109,27 +171,38 @@ export const RouteScreen: React.FC = () => {
 
   return (
     <>
-      <SafeAreaView>
-        <View>
-          <TextInput
-            style={styles.input}
-            placeholder="출발지"
-            value={Querydata.startQuery}
-            onChangeText={(text) => handleChangQuery('startQuery', text)}
-            onPressOut={() => setSelecQueryType('start')}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="목적지"
-            value={Querydata.endQuery}
-            onChangeText={(text) => handleChangQuery('endQuery', text)}
-            onPressOut={() => setSelecQueryType('end')}
-          />
+      <Modal visible={modalVisible} transparent={true} animationType="fade">
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ backgroundColor: '#fff', padding: 20 }}>
+            <Text>이 위치로 설정 하시겠습니까?</Text>
+            <Button title="네" onPress={handlePointClick} />
+            <Button title="아니오" onPress={() => setModalVisible(false)} />
+          </View>
         </View>
+      </Modal>
+
+      <SearchInput />
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: 'white',
+        }}
+      >
+        <Button title="검색" onPress={() => handleGetGeoCode()} />
+        <Button
+          title="경로 탐색"
+          onPress={() => {
+            handleGetRoutePath();
+          }}
+        />
+      </View>
+      <View style={styled(IsOpen).container}>
         <NaverMapView
-          style={{ width: '100%', height: '60%' }}
+          style={styled(IsOpen).map}
           showsMyLocationButton={true}
-          center={{ ...P0, zoom: 16 }}
+          center={{ ...centerPoint, zoom: 16 }}
           //  onTouch={e => console.log('onTouch', JSON.stringify(e.nativeEvent))}
           //  onCameraChange={e => console.log('onCameraChange', JSON.stringify(e))}
           onMapClick={(e) => console.log('onMapClick', JSON.stringify(e))}
@@ -143,36 +216,66 @@ export const RouteScreen: React.FC = () => {
               }}
               pinColor="red"
               onClick={() => handleMarkerClick(item)}
+              caption={{
+                text: item.title.replace(/<\/?[^>]+(>|$)/g, ''),
+                align: Align.Top,
+              }}
             />
           ))}
+
+          {gpxInfo && <Path coordinates={gpxInfo.BUS} color="#34447F" />}
+          {gpxInfo && <Path coordinates={gpxInfo.WALK} color="#777" />}
+          {gpxInfo && <Path coordinates={gpxInfo.SUBWAY} color="green" />}
+          {gpxInfo && <Path coordinates={gpxInfo.TAXI} color="#f57c2c" />}
         </NaverMapView>
 
-        <Modal visible={modalVisible} transparent={true} animationType="fade">
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <View style={{ backgroundColor: '#fff', padding: 20 }}>
-              <Text>이 위치로 설정 하시겠습니까?</Text>
-              <Button title="네" onPress={handlePointClick} />
-              <Button title="아니오" onPress={() => setModalVisible(false)} />
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={handleIsOpen}
+          style={styled(IsOpen).body}
+        >
+          <Animated.View>
+            <View style={styled(IsOpen).bodyHeader}>
+              {IsOpen ? <IconChevronDown /> : <IconChevronUp />}
             </View>
-          </View>
-        </Modal>
-
-        <Button title="출발지 검색" onPress={() => getGeoCode()} />
-
-        <Button title="목적지 검색" onPress={() => getGeoCode()} />
-
-        <Button title="경로 탐색" />
-      </SafeAreaView>
+            {info && <Suggestion info={info} TaxiInfo={TaxiData} />}
+          </Animated.View>
+        </TouchableOpacity>
+      </View>
     </>
   );
 };
 
-const styles = StyleSheet.create({
-  input: {
-    height: 40,
-    width: '75%',
-    margin: 10,
-    borderWidth: 1,
-    padding: 10,
-  },
-});
+const styled = (isOpen: boolean) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    map: {
+      width: '100%',
+      height: '85%',
+    },
+    body: {
+      position: 'absolute',
+      width: '100%',
+      height: isOpen ? 410 : 160,
+      bottom: -20,
+      transition: 'all 0.4s ease-out',
+    },
+    bodyHeader: {
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: 20,
+      width: '100%',
+      backgroundColor: 'white',
+      borderTopRightRadius: 50,
+      borderTopLeftRadius: 50,
+    },
+    icon: {
+      position: 'absolute',
+      top: 50,
+      right: 20,
+      zIndex: 9999,
+    },
+  });
