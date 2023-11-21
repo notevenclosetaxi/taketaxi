@@ -13,10 +13,13 @@ import { SearchInput } from './SearchInput';
 import { TaxiInfo } from '../../interface';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
+import { RouteStackParamList } from '../../navigator/Stacks/RouteStack/RouteStack';
 
 const SuggestionScreen: React.FC = (props: any) => {
-  const routeData = props.route.params.routeData;
-  const TaxiData: TaxiInfo = props.route.params.TaxiData;
+  const routeData = props.route.params && props.route.params.routeData;
+  const TaxiData: TaxiInfo = props.route.params && props.route.params.TaxiData;
+
+  const navigation = useNavigation<NativeStackNavigationProp<RouteStackParamList>>();
 
   const { startQuery, endQuery } = useSelector((state: RootState) => state.query);
   // console.log('routedata', routeData);
@@ -33,6 +36,7 @@ const SuggestionScreen: React.FC = (props: any) => {
       spendTime: TaxiData['spendTime(Sec)'],
       taxiFare: TaxiData['taxiFare(won)'],
       costPerDistance: TaxiData.costPerDistance,
+      gpx: TaxiData.gpx,
     },
 
     step1: { ...option.step1, startName: `${option.step2.startName} 근처` },
@@ -59,17 +63,16 @@ const SuggestionScreen: React.FC = (props: any) => {
   //   newData.map((item) => item.steps.reduce((acc, cur) => acc + cur.spendTime, 0))
   // );
 
-  console.log(
-    'newData',
-    newData.map((info) => info.steps.costPerDistance)
-  );
+  const handlePress = (info: any) => {
+    navigation.navigate('route', { info });
+  };
 
   return (
     <BaseView>
       <SearchInput />
       <ScrollView style={styled.body}>
         {newData.map((info, idx) => (
-          <TouchableOpacity activeOpacity={1}>
+          <TouchableOpacity activeOpacity={0.5} onPress={() => handlePress(info)}>
             <Suggestion info={info} TaxiInfo={TaxiData} />
           </TouchableOpacity>
         ))}

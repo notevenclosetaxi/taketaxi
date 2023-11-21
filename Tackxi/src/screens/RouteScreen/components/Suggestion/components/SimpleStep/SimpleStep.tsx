@@ -15,10 +15,10 @@ const SimpleStep: React.FC<SimpleStepProps> = ({ step }) => {
 
     switch (step.mode) {
       case ModeEnum.TAXI: {
-        return <TaxiMode percent={55} sectionTime={step.spendTime} />;
+        return <TaxiMode percent={50} sectionTime={step.spendTime} />;
       }
       case ModeEnum.BUS: {
-        return <BusMode percent={15} sectionTime={step.spendTime} />;
+        return <BusMode percent={20} sectionTime={step.spendTime} />;
       }
       case ModeEnum.WALK: {
         return <WalkMode percent={15} sectionTime={step.spendTime} />;

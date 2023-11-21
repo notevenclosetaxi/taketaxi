@@ -11,7 +11,7 @@ import { SuggestionScreen } from '../../../screens/RouteScreen';
 const { Screen, Navigator } = createNativeStackNavigator<RouteStackParamList>();
 
 export type RouteStackParamList = {
-  route: undefined;
+  route: any;
   routeInfo: any;
   suggestion: any;
 };

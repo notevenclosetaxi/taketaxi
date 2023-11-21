@@ -52,7 +52,8 @@ export const SearchInput = () => {
 
 export const styled = StyleSheet.create({
   container: {
-    height: '15%',
+    marginTop: 40,
+    height: '10%',
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'center',

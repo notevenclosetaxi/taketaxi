@@ -23,7 +23,7 @@ const Suggestion: React.FC<SuggestionProps> = ({ info, TaxiInfo }) => {
                 저렴해요
               </Text>
               <Text style={{ fontSize: 12, color: 'red' }}>
-                소요 시간 {TimeUtil.setSecondToMinute(TaxiInfo['spendTime(Sec)'] * 2)}
+                소요 시간 {TimeUtil.setSecondToMinute(TaxiInfo['spendTime(Sec)'] * 0.8)}
                 분을 절약했어요!
               </Text>
             </View>
@@ -65,6 +65,4 @@ const Suggestion: React.FC<SuggestionProps> = ({ info, TaxiInfo }) => {
     </View>
   );
 };
-//택시의 경우에는 스텝 안에 TAXI가 없으므로 모드가 존재하지 않음. 택시가 안 나오는 원인임
-//택시의 경우 step0로 데이터를 추가하면 어떨까 싶음
 export default Suggestion;
