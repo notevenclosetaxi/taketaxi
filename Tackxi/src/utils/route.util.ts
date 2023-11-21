@@ -17,3 +17,17 @@ export const getCoordinates = (testRoute1: Route, stationInfo: StationInfo) => {
     return coordinates;
   }
 };
+
+export const convertData = (infodata) => {
+  const result = {};
+
+  infodata.forEach((item) => {
+    const { mode, gpx } = item;
+    result[mode] = gpx.map((cood) => ({
+      latitude: Number(cood[1]),
+      longitude: Number(cood[0]),
+    }));
+  });
+
+  return result;
+};

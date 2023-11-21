@@ -3,8 +3,10 @@ import { getRouteList } from '../../service/route.service';
 import { useState } from 'react';
 import { routedata } from '../../../routedate';
 import { mock } from '../../../mock';
+import { SearchInput } from './SearchInput';
+import { styled } from './styles';
 
-export const RouteInfo: React.FC = () => {
+export const RouteInfo: React.FC = (props: any) => {
   // const [routeListData, setRouteListData] = useState([]);
   // const getRouteInfoList = async () => {
   //   try {
@@ -16,73 +18,62 @@ export const RouteInfo: React.FC = () => {
   // };
   // console.log('res', routeListData);
 
-  const [realRouteList, setRealRouteList] = useState(getRouteList().item);
+  const routeData = props.route.params.routeData;
+  const TaxiData = props.route.params.TaxiData;
+  console.log('routedata', routeData);
 
-  console.log(realRouteList);
+  console.log('taxidata', TaxiData);
 
-  const sortByDuration = () => {
-    const sortedTimeList = [...realRouteList].sort(
-      (a, b) => b.summary.savedTime - a.summary.savedTime
-    );
-    setRealRouteList(sortedTimeList);
-    // console.log(sortedTimeList);
-  };
-
-  const sortByPrice = () => {
-    const sortedMoneyList = [...realRouteList].sort(
-      (a, b) => a.summary.taxiFare - b.summary.taxiFare
-    );
-    setRealRouteList(sortedMoneyList);
-    // console.log(sortedMoneyList);
-  };
   return (
     <SafeAreaView>
-      <ScrollView>
-        <Button title="최단 시간이 좋아요" onPress={() => sortByDuration()}></Button>
-        <Button title="경제적으로 타고 싶어요" onPress={() => sortByPrice()}></Button>
-        {realRouteList.map((item, idx) => (
-          <View key={idx} style={styles.MainBox}>
-            <Text style={styles.MainText}>택시 요금 : {item.summary.taxiFare}원</Text>
-            <Text style={styles.MainText}>
-              절약 시간 : {Math.round(item.summary.savedTime / 60)}분
-            </Text>
-            <Text style={styles.MainText}>
-              절약한 택시 요금 : {item.summary.savedMoney}원
-            </Text>
-            {item.steps.map((step, stepIdx) => (
-              <View key={stepIdx} style={styles.InBox}>
-                <Text>교통수단 : {step.mode}</Text>
-                {step.mode === 'BUS' && step.route !== null && (
-                  <Text>버스 번호 : {step.route}</Text>
-                )}
-                <Text>출발지 : {step.stationList[0]}</Text>
-                <Text>도착지 : {step.stationList[step.stationList.length - 1]}</Text>
-                <Text>소요시간 : {Math.round(step.sectionTime / 60)}분</Text>
+      <SearchInput />
+      <ScrollView style={styled.body}>
+        <View>
+          <View style={styled.body}>
+            <View>
+              <View style={styled.infoWrap}>
+                <View style={styled.saveInfo}>
+                  <Text style={{ fontSize: 12, color: 'red' }}>
+                    이동 거리 : {Math.round((TaxiData['distance(m)'] / 1000) * 100) / 100}{' '}
+                    KM
+                  </Text>
+                </View>
+                <View style={styled.routeInfo}>
+                  <Text style={{ fontSize: 15 }}>
+                    택시비 - {TaxiData['taxiFare(won)']}원
+                  </Text>
+                  <View style={styled.rowDivider} />
+                  <Text style={{ fontSize: 15 }}>
+                    소모 시간 : {Math.round(TaxiData['spendTime(Sec)'] / 60)}분
+                  </Text>
+                </View>
               </View>
-            ))}
+              <View>
+                {Object.keys(routeData).map((option, index) => (
+                  <View key={index}>
+                    <Text>옵션 {option}:</Text>
+                    {Object.keys(routeData[option]).map((step) => (
+                      <View style={styled.simpleRoute} key={step}>
+                        <Text>- Step {step}:</Text>
+                        <Text> - 모드: {routeData[option][step].mode}</Text>
+                        <Text> - 방법: {routeData[option][step].route}</Text>
+                        <Text>
+                          {' '}
+                          - 소요시간: 약{' '}
+                          {Math.trunc(routeData[option][step].spendTime / 60)}분{' '}
+                          {Math.round(routeData[option][step].spendTime) % 60}초
+                        </Text>
+                        <Text> - 출발지: {routeData[option][step].startName}</Text>
+                        <Text> - 도착지: {routeData[option][step].endName}</Text>
+                      </View>
+                    ))}
+                  </View>
+                ))}
+              </View>
+            </View>
           </View>
-        ))}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  MainText: {
-    fontSize: 20,
-  },
-  InBox: {
-    borderWidth: 1,
-    borderColor: '#000',
-    borderRadius: 5,
-    padding: 10,
-    marginVertical: 10,
-  },
-  MainBox: {
-    borderWidth: 1,
-    borderColor: '#000',
-    borderRadius: 5,
-    padding: 10,
-    marginVertical: 10,
-  },
-});

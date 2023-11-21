@@ -5,7 +5,7 @@ import {
 } from '../interface/http/response/route.response';
 import { X_Naver_Client_Id } from '@env';
 import { X_Naver_Client_Secret } from '@env';
-import { SelectQueryEnum } from '../enum';
+import { SelectQueryEnum } from '../enums';
 import { mock } from '../../mock';
 import { LatLongType, Route, StationInfo } from '../interface';
 const QuerySearchURL: string = 'https://openapi.naver.com/v1/search/local.json';
@@ -69,6 +69,7 @@ export const getRoutePath = async (startPoint: LatLongType, endPoint: LatLongTyp
           longitude: Number(item[0]),
         };
       }),
+      taxiData: res.data.taxiRoutes,
     };
   } catch (err) {
     if (axios.isAxiosError<any>(err)) {
